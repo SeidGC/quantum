@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-KTZ25JHZGT"></script>
+	<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-KTZ25JHZGT');
+	</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulario Postulación Programa Quantum</title>
@@ -85,30 +94,20 @@ function loadDraftData(rut) {
         xhr.onload = function() {
             if (this.status === 200) {
                 var response = JSON.parse(this.responseText);
-                // Asegurarse de que la respuesta incluye un indicativo claro de éxito o fallo
-                if (response.success) {
-                    Object.keys(response.data).forEach(function(key) {
+                if (response) {
+                    // Asumiendo que response es un objeto con las propiedades que corresponden a los nombres de los campos del formulario
+                    Object.keys(response).forEach(function(key) {
                         var input = document.getElementById(key);
                         if (input) {
-                            input.value = response.data[key];
+                            input.value = response[key];
                         }
                     });
-                    alert("Bienvenido de nuevo. Por favor, continúa llenando tu formulario.");
-                } else {
-                    alert("Pareces ser un nuevo postulante. Tu información se guardará como borrador.");
                 }
-            } else {
-                alert("Error al cargar datos. Por favor, inténtalo de nuevo.");
             }
-        };
-        xhr.onerror = function() {
-            // Manejo de errores de conexión
-            alert("Error en la conexión con el servidor.");
         };
         xhr.send('rut=' + encodeURIComponent(rut));
     }
 }
-
 </script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -268,34 +267,31 @@ function loadDraftData(rut) {
     <div class="flex justify-center items-center space-x-4 mt-4 flex-wrap">
     <img src="logocolor3.png" alt="Imagen 1" class="rounded-lg w-full sm:w-auto" style="max-width: 500px;">
     </div>
-<script>
-// Función para cambiar de sección en el formulario
-function showSection(section) {
-    const allSections = document.querySelectorAll('.form-section');
-    // Oculta todas las secciones y muestra la seleccionada
-    allSections.forEach(sec => sec.classList.add('hidden'));
-    document.getElementById('section' + section).classList.remove('hidden');
-}
-</script>
 
+    <script>
+        function showSection(section) {
+            const allSections = document.querySelectorAll('.form-section');
+            allSections.forEach(sec => sec.classList.add('hidden'));
+            document.getElementById('section' + section).classList.remove('hidden');
+        }
+    </script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const points = document.querySelectorAll('.timeline-point');
     const lines = document.querySelectorAll('.timeline-line');
 
-    // Función para mostrar la sección del formulario y actualizar la línea de tiempo
     function showSection(section) {
         const allSections = document.querySelectorAll('.form-section');
         allSections.forEach((sec, index) => {
-            sec.classList.add('hidden');
             if (index + 1 === section) {
                 sec.classList.remove('hidden');
                 updateTimeline(index + 1);
+            } else {
+                sec.classList.add('hidden');
             }
         });
     }
 
-    // Actualiza la línea de tiempo basándose en la validez de los datos de la sección actual
     function updateTimeline(currentSection) {
         const inputs = document.getElementById(`section${currentSection}`).querySelectorAll('input, textarea, select');
         let isValid = true;
@@ -311,16 +307,22 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Formatea el RUT mientras el usuario escribe
-    const rutInput = document.getElementById('rut');
-    rutInput.addEventListener('input', function(e) {
-        let valor = e.target.value.replace(/\D/g, '');
-        if (valor.length > 1) {
-            valor = valor.slice(0, -1) + '-' + valor.slice(-1);
-        }
-        e.target.value = valor;
-    });
+const rutInput = document.getElementById('rut');
+rutInput.addEventListener('input', function(e) {
+    let valor = e.target.value.replace(/[^\dKk]/g, ''); // Elimina todos los caracteres que no sean números o K
 
-    // Verifica el RUT al perder el foco del campo
+    // Comprobar si el último carácter es un dígito o una K, y si la longitud es adecuada para insertar un guión
+    if (valor.length > 1) {
+        let cuerpo = valor.slice(0, -1); // Todos los dígitos excepto el último
+        let dv = valor.slice(-1).toUpperCase(); // El último dígito o K, convertido a mayúscula
+
+        valor = cuerpo + '-' + dv; // Agrega el guión
+    }
+
+    e.target.value = valor; // Actualiza el valor del campo con el formato correcto
+});
+
+
     rutInput.addEventListener('blur', function(e) {
         const rut = e.target.value;
         if (!/^(\d{1,8}-[\dkK])$/.test(rut)) {
@@ -345,181 +347,48 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Función para actualizar la validez de la sección actual y ajustar la animación del logo
+    const allSections = document.querySelectorAll('.form-section');
+    const points = document.querySelectorAll('.timeline-point');
+    const lines = document.querySelectorAll('.timeline-line');
+
+    // Función para mostrar la sección correspondiente
+    function showSection(section) {
+        allSections.forEach((sec, index) => {
+            sec.classList.add('hidden');
+            if (index + 1 === section) {
+                sec.classList.remove('hidden');
+                updateTimeline(section);
+            }
+        });
+    }
+
+    // Función para actualizar el color de la línea de tiempo
+    function updateTimeline(currentSection) {
+        for (let i = 0; i < currentSection; i++) {
+            if (validateSection(i + 1)) {
+                points[i].style.backgroundColor = 'green';
+                points[i].style.borderColor = 'green';
+                if (i > 0) {
+                    lines[i - 1].style.backgroundColor = 'green';
+                }
+            } else {
+                points[i].style.backgroundColor = 'blue';
+                points[i].style.borderColor = 'blue';
+                if (i > 0) {
+                    lines[i - 1].style.backgroundColor = 'blue';
+                }
+            }
+        }
+    }
+
+    // Función para validar una sección específica
     function validateSection(index) {
         const section = document.getElementById(`section${index}`);
         if (!section) return false;
         const inputs = section.querySelectorAll('input[type="text"], input[type="email"], textarea, select');
         return Array.from(inputs).every(input => input.value.trim() !== '');
-    }
-
-    // Función para rotar el logo al cambiar de sección
-    function rotateLogo() {
-        const logoSvg = document.getElementById('logoSvg');
-        let currentDegree = 0;
-        logoSvg.addEventListener('animationend', () => {
-            currentDegree += 90;
-            logoSvg.style.transform = `translate(-50%, -50%) rotate(${currentDegree % 360}deg)`;
-            logoSvg.classList.remove('rotate');
-        });
-
-        document.querySelectorAll('button[onclick^="showSection"]').forEach(button => {
-            button.addEventListener('click', function () {
-                const nextSection = parseInt(this.getAttribute('onclick').match(/\d+/)[0]);
-                showSection(nextSection);
-                logoSvg.classList.add('rotate'); // Inicia la animación
-            });
-        });
-    }
-
-    rotateLogo(); // Inicializa la animación del logo al cargar el documento
-});
-</script>
-
-<script>
-// Función para verificar el RUT y cargar datos si existe previamente
-function verifyRUT() {
-    var rut = document.getElementById('rut').value;
-    if (rut) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', 'verify_rut.php', true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onload = function() {
-            if (this.status === 200) {
-                var response = JSON.parse(this.responseText);
-                if (response.exists) {
-                    alert("Bienvenido de nuevo. Por favor, continúa llenando tu formulario.");
-                    fillFormWithData(response.data);
-                } else {
-                    alert("Pareces ser un nuevo postulante. Tu información se guardará como borrador.");
-                }
-            }
-        };
-        xhr.send('rut=' + encodeURIComponent(rut));
-    }
-}
-
-// Función para rellenar el formulario con datos cargados
-function fillFormWithData(data) {
-    // Verifica que 'data' no sea nulo antes de intentar acceder a sus propiedades
-    if (!data) {
-        console.error('No se recibieron datos para llenar el formulario.');
-        return;
-    }
-
-    document.getElementById('nombreCompleto').value = data.nombre_completo || '';
-    document.getElementById('cargo').value = data.cargo || '';
-    document.getElementById('telefono').value = data.telefono_celular || '';
-    document.getElementById('region').value = data.region_residencia || '';
-    document.getElementById('email').value = data.email || '';
-    document.getElementById('sitioWeb').value = data.sitio_web || '';
-    document.getElementById('actorPrevio').value = data.actor_ecosistema || '';
-    document.getElementById('nombreSolucion').value = data.nombre_solucion || '';
-    document.getElementById('descripcionSolucion').value = data.descripcion_solucion || '';
-    document.getElementById('caracteristicas').value = data.caracteristicas_solucion || '';
-    document.getElementById('estadoPrototipo').value = data.estado_prototipo || '';
-    document.getElementById('equipo').value = data.equipo_descripcion || '';
-    document.getElementById('videoProyecto').value = data.video_proyecto || '';
-    document.getElementById('videoSeleccion').value = data.video_seleccion || '';
-
-    // Manejo seguro de 'fuente_informacion' que espera un string de valores separados por comas
-    if (data.fuente_informacion) {
-        const fuentesActivas = data.fuente_informacion.split(',');
-        ['fuenteLinkedin', 'fuenteInstagram', 'fuenteFacebook', 'fuenteEmail', 'fuenteAmigo', 'fuenteOtro'].forEach(function(fieldId) {
-            document.getElementById(fieldId).checked = fuentesActivas.includes(document.getElementById(fieldId).value);
-        });
-    } else {
-        // Desmarcar todas las opciones si no hay información disponible
-        ['fuenteLinkedin', 'fuenteInstagram', 'fuenteFacebook', 'fuenteEmail', 'fuenteAmigo', 'fuenteOtro'].forEach(function(fieldId) {
-            document.getElementById(fieldId).checked = false;
-        });
-    }
-}
-
-
-</script>
-<script>
-function camelToSnakeCase(str) {
-    return str.replace(/[\w]([A-Z])/g, function(m) {
-        return m[0] + "_" + m[1].toLowerCase();
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const inputs = document.querySelectorAll('input, textarea, select');
-    inputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            if (this.value.trim() !== "") {
-                console.log(`Enviando: ${this.id} (convertido: ${camelToSnakeCase(this.id)}) con valor: ${this.value}`);
-                autoSaveField(this.id, this.value);
-            }
-        });
-    });
-});
-
-function autoSaveField(fieldId, value) {
-    const rut = document.getElementById('rut').value;
-    if (!rut) {
-        console.error('RUT no proporcionado, guardado automático no realizado.');
-        return;
-    }
-    const snakeCaseId = camelToSnakeCase(fieldId);
-
-    var data = `field=${snakeCaseId}&value=${encodeURIComponent(value)}&rut=${encodeURIComponent(rut)}`;
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'autosave.php', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onreadystatechange = function() {
-        if (this.readyState === 4) {
-            console.log(`Respuesta para campo ${snakeCaseId}: ${this.responseText}`);
-            if (this.status !== 200) {
-                console.error('Error en el autoguardado con status ' + this.status + ': ' + this.statusText);
-            }
-        }
-    };
-    xhr.onerror = function() {
-        console.error('Error en la red o problema en el servidor al intentar autoguardar.');
-    };
-    xhr.send(data);
-}
-
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const points = document.querySelectorAll('.timeline-point');
-    const lines = document.querySelectorAll('.timeline-line');
-
-    // Función para mostrar la sección del formulario y actualizar la línea de tiempo
-    function showSection(section) {
-        const allSections = document.querySelectorAll('.form-section');
-        allSections.forEach((sec, index) => {
-            sec.classList.add('hidden');
-            if (index + 1 === section) {
-                sec.classList.remove('hidden');
-                updateTimeline(index + 1);
-            }
-        });
-    }
-
-    // Actualiza la línea de tiempo basándose en la validez de los datos de la sección actual
-    function updateTimeline(currentSection) {
-        const inputs = document.getElementById(`section${currentSection}`).querySelectorAll('input, textarea, select');
-        let isValid = true;
-        inputs.forEach(input => {
-            if (input.type !== 'checkbox' && input.type !== 'radio' && !input.value.trim()) {
-                isValid = false;
-            }
-        });
-
-        points[currentSection - 1].style.backgroundColor = isValid ? 'green' : 'blue';
-        points[currentSection - 1].style.borderColor = isValid ? 'green' : 'blue';
-        if (currentSection > 1) {
-            lines[currentSection - 2].style.backgroundColor = isValid ? 'green' : 'blue';
-        }
     }
 
     // Agregar evento a botones para cambiar de sección
@@ -543,15 +412,95 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('button[onclick*="showSection"]').forEach(button => {
         button.addEventListener('click', rotateLogo);
     });
+});
+</script>
 
-    // Validar campos en tiempo real para actualización de la línea de tiempo
-    document.querySelectorAll('input, textarea, select').forEach(input => {
-        input.addEventListener('change', function () {
-            let sectionIndex = this.closest('.form-section').getAttribute('id').match(/\d+/)[0];
-            updateTimeline(sectionIndex);
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const logoSvg = document.getElementById('logoSvg');
+    let currentDegree = 0; // Inicializa el grado de rotación aquí para un mejor control
+
+    // Registrar un solo manejador de eventos para manejar el fin de cada animación
+    logoSvg.addEventListener('animationend', () => {
+        currentDegree += 90; // Añade 90 grados después de cada animación
+        logoSvg.style.transform = `translate(-50%, -50%) rotate(${currentDegree % 360}deg)`; // Usa módulo para evitar el overflow
+        logoSvg.classList.remove('rotate');
+    });
+
+    document.querySelectorAll('button[onclick^="showSection"]').forEach(button => {
+        button.addEventListener('click', function () {
+            const nextSection = parseInt(this.getAttribute('onclick').match(/\d+/)[0]);
+            showSection(nextSection);
+            rotateLogo();
+        });
+    });
+
+    function rotateLogo() {
+        logoSvg.classList.add('rotate'); // Solo inicia la animación
+    }
+
+    function showSection(sectionNumber) {
+        // Asumiendo que existe una función para manejar la lógica de mostrar secciones
+        console.log("Mostrando sección:", sectionNumber);
+    }
+});
+</script>
+<script>
+function verifyRUT() {
+    var rut = document.getElementById('rut').value;
+    if (rut) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'verify_rut.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+            if (this.status === 200) {
+                var response = JSON.parse(this.responseText);
+                if (response.exists) {
+                    alert("Bienvenido de nuevo. Por favor, continúa llenando tu formulario.");
+                    fillFormWithData(response.data); // Función para rellenar el formulario
+                } else {
+                    alert("Pareces ser un nuevo postulante. Tu información se guardará como borrador.");
+                }
+            }
+        };
+        xhr.send('rut=' + encodeURIComponent(rut));
+    }
+}
+
+function fillFormWithData(data) {
+    document.getElementById('nombreCompleto').value = data.nombre_completo || '';
+    // Completa otros campos del formulario de manera similar
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function () {
+            if (this.value.trim() !== "") { // Solo guarda si hay algo escrito
+                autoSaveField(this.id, this.value);
+            }
         });
     });
 });
+
+function autoSaveField(fieldId, value) {
+    const rut = document.getElementById('rut').value;
+    if (!rut) {
+        console.log('RUT no proporcionado, guardado automático no realizado.');
+        return;
+    }
+    var data = `field=${fieldId}&value=${encodeURIComponent(value)}&rut=${encodeURIComponent(rut)}`;
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'autosave.php', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log('Autoguardado completado: ' + this.responseText);
+        }
+    };
+    xhr.send(data);
+}
 </script>
 </body>
 </html>
